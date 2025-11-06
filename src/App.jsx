@@ -3,7 +3,6 @@ import SiteHeader from './components/SiteHeader';
 import Hero from './components/Hero';
 import GamesShowcase from './components/GamesShowcase';
 import ResultsPanel from './components/ResultsPanel';
-import PromoBanner from './components/PromoBanner';
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
@@ -61,7 +60,6 @@ export default function App() {
       <SiteHeader />
       <Hero />
       <GamesShowcase onSelect={handleSelectGame} />
-      <PromoBanner />
       <ResultsPanel lastWinner={winnerInfo} />
 
       <main className="max-w-7xl mx-auto px-4 pb-16">
