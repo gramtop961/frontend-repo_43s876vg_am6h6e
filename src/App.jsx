@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import Header from './components/Header';
-import CreateLottery from './components/CreateLottery';
+import GamesLibrary from './components/GamesLibrary';
 import LotteryList from './components/LotteryList';
 import TicketManager from './components/TicketManager';
-import DrawModal from './components/DrawModal';
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
@@ -11,10 +10,9 @@ function getRandomInt(max) {
 
 export default function App() {
   const [lotteries, setLotteries] = useState([]);
-  const [drawTarget, setDrawTarget] = useState(null);
   const [winnerInfo, setWinnerInfo] = useState(null);
 
-  const handleCreate = (lottery) => {
+  const handleImport = (lottery) => {
     setLotteries((prev) => [lottery, ...prev]);
   };
 
@@ -25,7 +23,7 @@ export default function App() {
   const handleSellTickets = (id, buyer, quantity) => {
     setLotteries((prev) => prev.map(l => {
       if (l.id !== id) return l;
-      const newTickets = Array.from({ length: quantity }, (_, i) => ({ id: crypto.randomUUID(), buyer }));
+      const newTickets = Array.from({ length: quantity }, () => ({ id: crypto.randomUUID(), buyer }));
       return {
         ...l,
         ticketsSold: l.ticketsSold + quantity,
@@ -34,24 +32,17 @@ export default function App() {
     }));
   };
 
-  const openDraw = (id) => {
-    const l = lotteries.find(x => x.id === id);
-    if (l) setDrawTarget(l);
-  };
-
   const confirmDraw = (id) => {
     const l = lotteries.find(x => x.id === id);
     if (!l) return;
     if (l.participants.length === 0) {
       setWinnerInfo({ lotteryName: l.name, message: 'No tickets sold yet.' });
-      setDrawTarget(null);
       return;
     }
     const idx = getRandomInt(l.participants.length);
     const winningTicket = l.participants[idx];
     setWinnerInfo({ lotteryName: l.name, buyer: winningTicket.buyer, ticketId: winningTicket.id, prize: l.prize });
     setLotteries((prev) => prev.map(x => x.id === id ? { ...x, status: 'Completed' } : x));
-    setDrawTarget(null);
   };
 
   const stats = useMemo(() => {
@@ -86,9 +77,9 @@ export default function App() {
           </div>
         </section>
 
-        <CreateLottery onCreate={handleCreate} />
+        <GamesLibrary onImport={handleImport} />
         <TicketManager lotteries={lotteries} onSellTickets={handleSellTickets} />
-        <LotteryList lotteries={lotteries} onDelete={handleDelete} onDraw={openDraw} />
+        <LotteryList lotteries={lotteries} onDelete={handleDelete} onDraw={confirmDraw} />
 
         {winnerInfo && (
           <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
@@ -106,8 +97,6 @@ export default function App() {
           </div>
         )}
       </main>
-
-      <DrawModal open={!!drawTarget} lottery={drawTarget} onClose={() => setDrawTarget(null)} onConfirm={confirmDraw} />
     </div>
   );
 }
